@@ -1,9 +1,13 @@
 __author__ = 'mike'
+ # -*- coding: utf-8 -*-
 from selenium.webdriver import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.select import Select
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions
+from selenium.webdriver.common.keys import Keys
+from datetime import datetime
+from tests.page_objects.Const import Const
 
 def web_driver_wait_element(driver, selector):
     return WebDriverWait(driver, 30, 0.1).until(
@@ -164,15 +168,61 @@ class BannerPreview(Component):
 
 
 class Gender(Component):
-    TAG = '.campaign-setting__value .js-setting-value'
+    TAG = 'campaign-setting__value'
     MAN = '#sex-M'
 
-    def __init__(self, driver):
-        super(BaseCampaignSettings, self).__init__(driver)
-        self.gender = web_driver_wait_element(self.driver, self.TAG)
-
     def open_menu(self):
-        self.gender.click()
+        self.driver.find_element_by_class_name(self.TAG).click()
 
     def setMan(self):
         web_driver_wait_element(self.driver, self.MAN).click()
+
+
+class TimeSelector(Component):
+    FROM_DATE = ".campaign-setting__detail__date-input[data-name=from]"
+    TO_DATE = ".campaign-setting__detail__date-input[data-name=to]"
+    WHEN = ".all-settings__group[data-name=when]"
+    DATE = ".campaign-setting__value.js-setting-value"
+    DATES = ".all-settings__item[data-name=date]"
+    SETTING = ".create-page__settings"
+
+    def __init__(self, driver):
+        super(TimeSelector, self).__init__(driver)
+        WebDriverWait(self.driver, 30, 0.1).until(
+            lambda d: d.find_element_by_xpath("//span[@class='campaign-setting__name'][text() = 'Время работы кампании']")
+        )
+        web_driver_wait_element(self.driver, self.SETTING)
+        self.when = web_driver_wait_element(self.driver, self.WHEN)
+        self.dates = self.when.find_element_by_css_selector(self.DATES)
+        self.time = self.dates.find_element_by_css_selector(self.DATE)
+
+    def _wait_for_load(self):
+        WebDriverWait(self.driver, 30, 0.1).until(
+            lambda d: d.find_element_by_xpath("//span[@class='campaign-setting__name'][text() = 'Время работы кампании']")
+        )
+    def toogle(self):
+        self._wait_for_load()
+        self.time.click()
+
+    def set_time(self, time_begin, time_end):
+        self._wait_for_load()
+        begin = web_driver_wait_element(self.driver, self.FROM_DATE)
+        begin.send_keys(time_begin.strftime('%d.%m.%Y'))
+        end = web_driver_wait_element(self.driver, self.TO_DATE)
+        end.send_keys(time_end.strftime('%d.%m.%Y'))
+        end.send_keys(Keys.RETURN)
+
+    def get_timediff(self):
+        self._wait_for_load()
+        return self.time.text
+
+    def get_begin_time(self):
+        self._wait_for_load()
+        return datetime.strptime(web_driver_wait_element(self.driver, self.FROM_DATE).get_attribute('value'), Const.FORMAT)
+
+    def get_end_time(self):
+        self._wait_for_load()
+        return datetime.strptime(web_driver_wait_element(self.driver, self.TO_DATE).get_attribute('value'), Const.FORMAT)
+
+
+

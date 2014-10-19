@@ -1,23 +1,10 @@
 import os
-
+ # -*- coding: utf-8 -*-
 import unittest
 
-
 from selenium.webdriver import ActionChains, DesiredCapabilities, Remote
-from selenium.webdriver.support.ui import Select, WebDriverWait
-from tests.page_objects.pages import AuthPage, CreatePage
-
-class Const:
-    GAME = 'http://odnoklassniki.ru/game/piratetreasures'
-    IMG_PATH = os.path.abspath('img.jpg')
-    TITLE = "GABEN GAME"
-    TEXT = "GABEN"
-    NAME = "GABEN COMP"
-    USERNAME = 'tech-testing-ha2-20'
-    PASSWORD = os.environ['TTHA2PASSWORD']
-    DOMAIN = '@bk.ru'
-
-
+from tests.page_objects.pages import AuthPage, CreatePage, CampaignsPage
+from tests.page_objects.Const import Const
 def login(driver):
     auth_page = AuthPage(driver)
     auth_page.open()
@@ -42,14 +29,13 @@ class SeleniumTests(unittest.TestCase):
     def tearDown(self):
         self.driver.quit()
 
-
-    def testLogin(self):
+    def test_login(self):
         create_page = CreatePage(self.driver)
         create_page.open()
         email = create_page.top_menu.get_email()
         self.assertEqual(Const.USERNAME+Const.DOMAIN, email)
 
-    def testAddAd(self):
+    def test_add_ad(self):
         create_page = CreatePage(self.driver)
         create_page.open()
         settings = create_page.base_settings
@@ -69,8 +55,7 @@ class SeleniumTests(unittest.TestCase):
         self.assertEqual(Const.TEXT, banner.text.text, "Text differs")
         self.assertIsNotNone(banner.image.value_of_css_property('background-image'), "No image")
 
-
-    def compWithGender(self):
+    def test_comp_with_gender(self):
         create_page = CreatePage(self.driver)
         create_page.open()
         settings = create_page.base_settings
@@ -88,5 +73,38 @@ class SeleniumTests(unittest.TestCase):
         gender = create_page.gender
         gender.open_menu()
         gender.setMan()
-        assert True
 
+        create_page.create_comp_button.click()
+        comp_page = CampaignsPage(self.driver)
+        info = comp_page.edit_last.text
+        self.assertEqual(info.split(',')[0], u"Ж")
+
+    def test_date_diff_time(self):
+        create_page = CreatePage(self.driver)
+        create_page.open()
+        time_selector = create_page.time_selector
+        time_selector.toogle()
+        time_selector.set_time(Const.FROM_DATE, Const.TO_DATE)
+        self.assertEqual((int)(time_selector.get_timediff().split(' ')[0]), (int)((Const.TO_DATE - Const.FROM_DATE).days + 1), "Wrong calculation difftiem")
+
+    def test_toogle_date(self):
+        create_page = CreatePage(self.driver)
+        create_page.open()
+        time_selector = create_page.time_selector
+        time_selector.toogle()
+        time_selector.set_time(Const.FROM_DATE, Const.TO_DATE)
+        time_selector.toogle()
+        time_selector.toogle()
+        self.assertEqual(time_selector.get_begin_time(), Const.FROM_DATE, "From date doesn't match")
+        self.assertEqual(time_selector.get_end_time(), Const.TO_DATE, "End date doesn't match")
+
+    def test_wrong_data_order(self):
+        create_page = CreatePage(self.driver)
+        create_page.open()
+        time_selector = create_page.time_selector
+        time_selector.toogle()
+        time_selector.set_time(Const.TO_DATE, Const.FROM_DATE)
+        self.assertEqual(time_selector.get_begin_time(), Const.FROM_DATE, "From date doesn't match")
+        self.assertEqual(time_selector.get_end_time(), Const.TO_DATE, "End date doesn't match")
+
+    pass

@@ -1,6 +1,8 @@
 __author__ = 'mike'
 import urlparse
-from tests.page_objects.comp import AuthForm, TopMenu, Slider, BaseCampaignSettings, AdsForm, Gender
+from tests.page_objects.comp import AuthForm, TopMenu, Slider, TimeSelector, BaseCampaignSettings, AdsForm, Gender
+from selenium.webdriver.support.wait import WebDriverWait
+
 class Page(object):
     BASE_URL = 'https://target.mail.ru'
     PATH = ''
@@ -23,6 +25,7 @@ class AuthPage(Page):
 
 class CreatePage(Page):
     PATH = '/ads/create'
+    CREATE = '.main-button-new'
 
     @property
     def top_menu(self):
@@ -43,3 +46,30 @@ class CreatePage(Page):
     @property
     def gender(self):
         return Gender(self.driver)
+
+    @property
+    def create_comp_button(self):
+        return WebDriverWait(self.driver, 30, 0.1).until(
+            lambda d: d.find_element_by_css_selector(self.CREATE)
+        )
+
+    @property
+    def time_selector(self):
+        return TimeSelector(self.driver)
+
+
+class CampaignsPage(Page):
+    PATH = '/ads/campaigns/'
+    LAST_EDIT = '.campaign-title__settings .js-campaign-title-settings'
+
+    @property
+    def edit_last(self):
+        return WebDriverWait(self.driver, 30, 0.1).until(
+            lambda d: d.find_element_by_class_name('campaign-title__settings')
+        )
+
+    @property
+    def gender_info(self):
+        return WebDriverWait(self.driver, 30, 0.1).until(
+            lambda d: d.find_element_by_css_selector('.campaign-settings-list__targeting__value.js-campaign-settings-value')
+        )
