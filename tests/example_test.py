@@ -13,8 +13,6 @@ def login(driver):
     auth_form.set_login(Const.USERNAME)
     auth_form.set_password(Const.PASSWORD)
     auth_form.submit()
-    email = create_page.top_menu.get_email()
-    self.assertEqual(Const.USERNAME+Const.DOMAIN, email)
 
 
 class SeleniumTests(unittest.TestCase):
